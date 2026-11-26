@@ -31,21 +31,69 @@
   });
   if (C.venue && C.venue.photo) { $('#venue-wm').style.backgroundImage = 'url("' + C.venue.photo + '")'; }
 
-  /* ---------- date (weekday is calculated, so it can never be wrong) ---------- */
-  var ymd = C.date.split('-').map(Number);
-  var dayUTC = new Date(Date.UTC(ymd[0], ymd[1] - 1, ymd[2]));
-  var weekday = dayUTC.toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
-  var month = dayUTC.toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' });
-  var dateParts = {
-    weekday: weekday,
-    day: String(ymd[2]),
-    monthyear: month + ' ' + ymd[0],
-    long: weekday + ', ' + ymd[2] + ' ' + month + ' ' + ymd[0]
-  };
-  $$('[data-date]').forEach(function (el) { el.textContent = dateParts[el.getAttribute('data-date')] || ''; });
+  /* ---------- event dates and venue cards ---------- */
+  function formatDate(value) {
+    var parts = value.split('-').map(Number);
+    var date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    return date.toLocaleDateString('en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'
+    });
+  }
+  var wedding = C.events.find(function (event) { return event.id === 'wedding'; });
+  if (!wedding) { throw new Error('The wedding event is missing from config.js'); }
+  var weddingDate = formatDate(wedding.date);
+  var start = new Date(C.countdown.date + 'T00:00:00' + (C.timezoneOffset || '+05:30'));
 
-  var start = new Date(C.date + 'T' + C.events.nikah.at + ':00' + (C.timezoneOffset || '+05:30'));
-  var end = new Date(start.getTime() + 3 * 3600 * 1000);
+  var overview = $('#event-overview');
+  var eventDays = C.events.map(function (event) {
+    return new Date(event.date + 'T00:00:00Z').toLocaleDateString('en-GB', {
+      day: 'numeric', timeZone: 'UTC'
+    });
+  });
+  var daySummary = eventDays.length > 1 ?
+    eventDays.slice(0, -1).join(', ') + ' & ' + eventDays[eventDays.length - 1] :
+    eventDays[0];
+  var monthYear = new Date(C.events[0].date + 'T00:00:00Z').toLocaleDateString('en-GB', {
+    month: 'long', year: 'numeric', timeZone: 'UTC'
+  });
+  overview.textContent = C.events.map(function (event) { return event.label; }).join(' · ') + '\n' +
+    daySummary + ' ' + monthYear;
+
+  var eventList = $('#event-list');
+  C.events.forEach(function (event) {
+    var item = document.createElement('section');
+    item.className = 'event-detail';
+
+    var heading = document.createElement('h3');
+    heading.textContent = event.label;
+    item.appendChild(heading);
+
+    var date = document.createElement('p');
+    date.className = 'event-date';
+    date.textContent = formatDate(event.date) + (event.time ? ' · ' + event.time : '');
+    item.appendChild(date);
+
+    var place = document.createElement('p');
+    place.className = 'event-place';
+    place.textContent = event.venue;
+    item.appendChild(place);
+
+    var address = document.createElement('p');
+    address.className = 'event-address';
+    address.textContent = event.address;
+    item.appendChild(address);
+
+    var map = document.createElement('a');
+    map.className = 'event-map';
+    map.href = 'https://www.google.com/maps/search/?api=1&query=' +
+      encodeURIComponent(event.venue + ', ' + event.address);
+    map.target = '_blank';
+    map.rel = 'noopener';
+    map.textContent = 'Open Google Maps';
+    item.appendChild(map);
+
+    eventList.appendChild(item);
+  });
 
   /* ---------- keep long names inside the card ---------- */
   function fit() {
@@ -101,35 +149,54 @@
     cdEls.h.textContent = pad(Math.floor((s % 86400) / 3600));
     cdEls.m.textContent = pad(Math.floor((s % 3600) / 60));
     cdEls.s.textContent = pad(s % 60);
-    note.textContent = dateParts.long + ' · ' + C.events.nikah.time;
+    note.textContent = weddingDate;
   }
   tick();
   setInterval(tick, 1000);
 
   /* ---------- links and buttons ---------- */
-  $('#maps').href = C.venue.mapsUrl;
-
   var title = 'Wedding of ' + C.bride.name + ' & ' + C.groom.name;
-  var where = C.venue.name + ', ' + C.venue.city;
+  var where = wedding.venue + ', ' + wedding.address;
 
   $('#cal').addEventListener('click', function () {
     var f = function (d) {
       return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T' +
              pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '00Z';
     };
+    var ymd = function (value) { return value.replace(/-/g, ''); };
+    var nextDay = function (value) {
+      var parts = value.split('-').map(Number);
+      var date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + 1));
+      return date.getUTCFullYear() + pad(date.getUTCMonth() + 1) + pad(date.getUTCDate());
+    };
     var esc = function (t) { return String(t).replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); };
-    var ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Wedding Invitation//EN', 'CALSCALE:GREGORIAN',
-      'BEGIN:VEVENT',
-      'UID:' + start.getTime() + '@wedding-invitation',
-      'DTSTAMP:' + f(new Date()),
-      'DTSTART:' + f(start),
-      'DTEND:' + f(end),
-      'SUMMARY:' + esc(title),
-      'LOCATION:' + esc(where),
-      'DESCRIPTION:' + esc('Nikah ' + C.events.nikah.time + ', Reception ' + C.events.reception.time + '. ' + C.thanks.line),
-      'END:VEVENT', 'END:VCALENDAR'
-    ].join('\r\n');
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Wedding Invitation//EN', 'CALSCALE:GREGORIAN'];
+    C.events.forEach(function (event) {
+      var details = event.label + ': ' + formatDate(event.date) +
+        (event.time ? ' · ' + event.time : '') + ' · ' + event.venue + ', ' + event.address;
+      lines.push(
+        'BEGIN:VEVENT',
+        'UID:' + event.id + '-' + ymd(event.date) + '@wedding-invitation',
+        'DTSTAMP:' + f(new Date())
+      );
+      if (event.at) {
+        lines.push('DTSTART:' + f(new Date(event.date + 'T' + event.at + ':00' +
+          (C.timezoneOffset || '+05:30'))));
+      } else {
+        lines.push(
+          'DTSTART;VALUE=DATE:' + ymd(event.date),
+          'DTEND;VALUE=DATE:' + nextDay(event.date)
+        );
+      }
+      lines.push(
+        'SUMMARY:' + esc(event.label + ' — ' + title),
+        'LOCATION:' + esc(event.venue + ', ' + event.address),
+        'DESCRIPTION:' + esc(details + '. ' + C.thanks.message),
+        'END:VEVENT'
+      );
+    });
+    lines.push('END:VCALENDAR');
+    var ics = lines.join('\r\n');
     var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -142,7 +209,7 @@
   if (C.rsvpWhatsApp) {
     rsvp.hidden = false;
     rsvp.href = 'https://wa.me/' + C.rsvpWhatsApp + '?text=' +
-      encodeURIComponent('Assalamu Alaikum, we will be attending the wedding of ' + C.bride.name + ' & ' + C.groom.name + ' on ' + dateParts.long + '. Insha Allah.');
+      encodeURIComponent('Assalamu Alaikum, we will be attending the wedding of ' + C.bride.name + ' & ' + C.groom.name + ' on ' + weddingDate + '. Insha Allah.');
   }
 
   /* ---------- share panel ---------- */
@@ -155,7 +222,7 @@
   }
   function openSheet() {
     var url = shareUrl();
-    var msg = C.shareMessage || (title + ' — ' + dateParts.long + ', ' + where + '.');
+    var msg = C.shareMessage || (title + ' — ' + weddingDate + ', ' + where + '.');
     urlBox.value = url;
     var enc = encodeURIComponent;
     $('#sh-wa').href = 'https://wa.me/?text=' + enc(msg + '\n' + url);

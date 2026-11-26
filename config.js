@@ -7,67 +7,74 @@
 window.INVITE = {
 
   /* Browser tab title */
-  siteTitle: "Second D/o Muzaffar Hussain Pangal & Mohammed Zeeshan Hegde — Wedding Invitation",
+  siteTitle: "Invitation from Dr. Shama Kousar",
 
   /* First screen (the closed envelope) */
   splash: {
     /* printed on the envelope's front flap, one item per line */
     lines: [
-      "Together with our families",
-      "we cordially request",
-      "the pleasure of",
-      "your presence."
+      "You are warmly invited",
+      "to celebrate the wedding",
+      "of Dr. Shama Kousar",
+      "& Hajimalanga Baba"
     ],
     sealLabel: "Open Me"
   },
 
-   blessing: [
-    "With the grace of Allah and the love of our families,",
-    "we invite you to be a part of our special day."
+  blessing: [
+    "With joy, we invite you",
+    "to celebrate our special days."
   ],
 
-  /* Names.
-     bride.name is not printed on the card; it is used for the browser title,
-     the calendar entry and the share message. */
-  bride: { name: "Second D/o Muzaffar Hussain Pangal",           parent: "D/o Muzaffar Hussain Pangal" },
-  groom: { name: "Mohammed Zeeshan Hegde", parent: "S/o Vasi Ahmed Hegde" },
+  bride: { name: "Dr. Shama Kousar" },
+  groom: { name: "Hajimalanga Baba" },
 
-  /* Italic message above the names (each item is one line) */
-
-
-  /* Date: YYYY-MM-DD. The weekday (Saturday) is worked out automatically. */
-  date: "2026-12-12",
-  timezoneOffset: "+05:30",          // India
-
-  /* Programme. "at" is 24-hour time, used for the countdown and calendar. */
-  events: {
-    nikah:     { label: "Nikah",     time: "6:45 PM", at: "18:45" },
-    reception: { label: "Reception", time: "8:30 PM" }
-  },
+  timezoneOffset: "+05:30",
+  events: [
+    {
+      id: "engagement",
+      label: "Engagement",
+      date: "2026-12-27",
+      time: "11:00 AM",
+      at: "11:00",
+      venue: "M K Mulla Home",
+      address: "Near Mittevali Dargha, Moratagi"
+    },
+    {
+      id: "wedding",
+      label: "Wedding",
+      date: "2026-12-28",
+      venue: "Sadbhavna School",
+      address: "Moratagi, Taluk Sindagi, District Vijayapura"
+    },
+    {
+      id: "reception",
+      label: "Reception",
+      date: "2026-12-30",
+      venue: "Near Abbasali Camp",
+      address: "Davalsab Doddi, Gurugunta, Taluk Lingasaguru, District Raichur"
+    }
+  ],
 
   /* Venue page */
   venue: {
-    name: "Prestige Convention Centre",
-    city: "Mysore",
-    photo: "assets/venue.jpg",
-    mapsUrl: "https://www.google.com/maps/search/?api=1&query=Prestige%20Convention%20Centre%20Mysore"
+    photo: "assets/venue.jpg"
   },
 
-  /* Countdown page */
   countdown: {
-    kicker: "Until We Say “Qabul”",
+    date: "2026-12-28",
+    kicker: "Until the Wedding Day",
     heading: "Countdown",
-    arrived: "Alhamdulillah, the day has arrived"
+    arrived: "The wedding day has arrived"
   },
 
-  /* Last page */
   thanks: {
-    heading: "Thank You",
-    line: "With your presence and Duas, our celebration will be complete"
+    heading: "Compliments From",
+    line: "Family & Friends",
+    message: "We look forward to your gracious presence."
   },
 
-  /* Text sent when someone shares the invitation (the link is added after it) */
-  shareMessage: "You are warmly invited to the wedding ceremony of Second D/o Muzaffar Hussain Pangal & Mohammed Zeeshan Hegde — Saturday, 12 December 2026, Prestige Convention Centre, Mysore.",
+  shareMessage: "You are warmly invited to celebrate the wedding of Dr. Shama Kousar and Hajimalanga Baba. Engagement: Sunday, 27 December 2026 at 11:00 AM, M K Mulla Home, Near Mittevali Dargha, Moratagi. Wedding: Monday, 28 December 2026, Sadbhavna School, Moratagi, Taluk Sindagi, District Vijayapura. Reception: Wednesday, 30 December 2026, Near Abbasali Camp, Davalsab Doddi, Gurugunta, Taluk Lingasaguru, District Raichur.",
 
   /* Optional RSVP button. Put a WhatsApp number with country code and no
      spaces or + (example: "919876543210"). Leave empty "" to hide the button. */
